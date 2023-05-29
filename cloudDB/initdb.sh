@@ -24,8 +24,11 @@ echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-6.0.gp
 sudo apt-get update
 sudo apt-get install -y mongodb-org
 
-ulimit -n 100000
+echo "mongodb soft nofile 65535" | sudo tee -a /etc/security/limits.conf
+echo "mongodb hard nofile 65535" | sudo tee -a /etc/security/limits.conf
 
 sudo systemctl enable mongod
-sudo systemctl start mongod
+sudo reboot
+
+#sudo systemctl start mongod
 
