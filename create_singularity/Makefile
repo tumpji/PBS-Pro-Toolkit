@@ -1,4 +1,6 @@
 
+.PHONY: run
+
 run: container.sif
 	singularity shell $<
 
