@@ -19,6 +19,9 @@ onyx.metacentrum.cz 	Debian 10 	/storage/brno2/home/ 	meta-pbs.metacentrum.cz 	a
 tilia.ibot.cas.cz 	Debian 11 	/storage/pruhonice1-ibot/home/ 	meta-pbs.metacentrum.cz 	Cluster of the Institute of Botany, CAS
 zuphux.cerit-sc.cz 	CentOS 7.9 	/storage/brno3-cerit/home/ 	cerit-pbs.cerit-sc.cz 	
 elmo.elixir-czech.cz 	Debian 11 	/storage/praha5-elixir/home/ 	elixir-pbs.elixir-czech.cz 	
+''' + \
+'''
+builder.metacentrum.cz	Debian 11	/storage/praha1/home/	meta-pbs.metacentrum.cz	
 '''
 
 
@@ -128,7 +131,6 @@ if __name__ == '__main__':
         prog='SSHMeta',
         description='Establish a connection to MetaCentrum servers',
         formatter_class=argparse.RawTextHelpFormatter
-        #help=Node.print_options
     )
     parser.add_argument('-s', '--server',
                         type=maybe_str_or_int_server,
@@ -140,6 +142,7 @@ if __name__ == '__main__':
                         help='Name or index of a storage:\n' + '\n'.join(
                             f'\t{i}) {n[0]}' for i,n in enumerate(Node.DICT_STORAGE.values())),
                         )
+
     args = parser.parse_args()
 
     # defines default response
