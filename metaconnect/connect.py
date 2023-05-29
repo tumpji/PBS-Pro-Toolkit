@@ -1,10 +1,11 @@
-#!/usr/bin/python3
+#!/usr/bin/python3.11
+from collections import defaultdict, OrderedDict
 from io import StringIO
 import csv
 import operator
 import re
 import argparse
-import functools
+from fuzzywuzzy import process
 
 server_csv = '''
 skirit.ics.muni.cz 	Debian 11 	/storage/brno2/home/ 	meta-pbs.metacentrum.cz 	
@@ -26,7 +27,56 @@ def normalize_string(s):
     return s
 
 
+def maybe_str_or_int(arg):
+    try:
+        return int(arg)
+    except ValueError:
+        pass
+    return arg
+
+
+def maybe_str_or_int_server(arg):
+    r = maybe_str_or_int(arg)
+    if isinstance(r, int):
+        if r < 0:
+            raise ValueError('Negative values for index of servers are forbiden')
+        elif r >= len(Node.DICT_SERVER):
+            raise ValueError('There is no server with that index')
+        return list(Node.DICT_SERVER.items())[r][0]
+    else:
+        option = process.extractOne(r,
+                                    list(Node.DICT_SERVER),
+                                    score_cutoff=30)
+        if option is None:
+            raise ValueError('No server with similar name is found')
+        return Node.DICT_SERVER[option[0]][0]
+
+
+def maybe_str_or_int_storage(arg):
+    r = maybe_str_or_int(arg)
+    if isinstance(r, int):
+        if r < 0:
+            raise ValueError('Negative values for index of storages are forbiden')
+        elif r >= len(Node.DICT_STORAGE):
+            raise ValueError('There is no storage with that index')
+        return list(Node.DICT_STORAGE.items())[r][0]
+    else:
+        option = process.extractOne(r,
+                                    list(Node.DICT_STORAGE),
+                                    score_cutoff=30)
+        if option is None:
+            raise ValueError('No storage with similar name is found')
+        return Node.DICT_STORAGE[option[0]][0]
+
+
 class Node:
+    ALL_NODES = []
+
+    DICT_STORAGE = defaultdict(list)
+    DICT_SERVER = defaultdict(list)
+    DICT_OS = defaultdict(list)
+    DICT_ORGANIZATION = defaultdict(list)
+
     def __init__(self, settings):
         self.SERVER_URL = settings[0]
         self.SERVER = re.match(r'[^\.]*', self.SERVER_URL)[0]
@@ -34,58 +84,72 @@ class Node:
         self.STORAGE = re.match(r'/[^/]*/([^/]*)', settings[2]).group(1)
         self.ORGANIZATION = settings[3]
 
+        Node.ALL_NODES.append(self)
+        Node.DICT_STORAGE[self.STORAGE].append(self)
+        Node.DICT_SERVER[self.SERVER].append(self)
+        Node.DICT_OS[self.OS].append(self)
+        Node.DICT_ORGANIZATION[self.ORGANIZATION].append(self)
+
     def __repr__(self):
         return self.SERVER
 
-    @staticmethod
-    def list_data(field):
-        return dict(enumerate(sorted(set(
-        map(operator.attrgetter(field), nodes)
-        ))))
+    @classmethod
+    def finalize(cls):
+        for attrb in ['STORAGE', 'SERVER', 'OS', 'ORGANIZATION']:
+            attrb = f'DICT_{attrb}'
+            obj = OrderedDict(sorted(
+                getattr(cls, attrb).items(), key=operator.itemgetter(0)))
+            setattr(cls, attrb, obj)
 
-    @staticmethod
-    @functools.lru_cache()
-    def servers():
-        return Node.list_data('SERVER')
+    @classmethod
+    def initialize(cls):
+        reader = csv.reader(StringIO(server_csv), delimiter='\t')
+        for x in reader:
+            if len(x):
+                Node(x)
 
-    @staticmethod
-    @functools.lru_cache()
-    def storages():
-        return Node.list_data('STORAGE')
+    @classmethod
+    def print_options(cls):
+        print('-'*80, io)
+        for name, dct in [
+                ('Servers:', cls.DICT_SERVER),
+                ('Storages:', cls.DICT_STORAGE)]:
+            print(name)
+            for i, x in enumerate(dct):
+                print(f'\t{i:<3} {x}')
 
 
-nodes = []
-
-reader = csv.reader(StringIO(server_csv), delimiter='\t')
-for x in reader:
-    if len(x):
-        nodes.append(Node(x))
-
+Node.initialize()
+Node.finalize()
 
 if __name__ == '__main__':
+    # defines parser
     parser = argparse.ArgumentParser(
         prog='SSHMeta',
-        description='Establish a connection to MetaCentrum servers')
-    parser.add_argument('-s', '--server', type=int)
-    parser.add_argument('-d', '--disk', '--storage', type=int)
+        description='Establish a connection to MetaCentrum servers',
+        formatter_class=argparse.RawTextHelpFormatter
+        #help=Node.print_options
+    )
+    parser.add_argument('-s', '--server',
+                        type=maybe_str_or_int_server,
+                        help='Name or index of a server:\n' + '\n'.join(
+                            f'\t{i}) {n[0]}' for i,n in enumerate(Node.DICT_SERVER.values())),
+                        )
+    parser.add_argument('-d', '--storage', '--disk',
+                        type=maybe_str_or_int_storage,
+                        help='Name or index of a storage:\n' + '\n'.join(
+                            f'\t{i}) {n[0]}' for i,n in enumerate(Node.DICT_STORAGE.values())),
+                        )
     args = parser.parse_args()
 
-    if args.server is None and args.disk is None:
-        print('-'*80)
+    # defines default response
+    if args.server is None and args.storage is None:
+        server = Node.ALL_NODES[0]
+    else:
+        server = args.server or args.storage
 
-        print('Servers:')
-        for i,x in Node.servers().items():
-            print(f'\t{i:<3} {x}')
-
-        print('Disks:')
-        for i,x in Node.storages().items():
-            print(f'\t{i:<3} {x}')
-
-        exit(0)
-
-    #pool = []
-    #if args.
-
+    print('Processing:')
+    print(server)
 
 
 
