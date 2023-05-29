@@ -38,38 +38,21 @@ def maybe_str_or_int(arg):
     return arg
 
 
-def maybe_str_or_int_server(arg):
-    r = maybe_str_or_int(arg)
-    if isinstance(r, int):
-        if r < 0:
-            raise ValueError('Negative values for index of servers are forbiden')
-        elif r >= len(Node.DICT_SERVER):
-            raise ValueError('There is no server with that index')
-        return list(Node.DICT_SERVER.items())[r][0]
-    else:
-        option = process.extractOne(r,
-                                    list(Node.DICT_SERVER),
-                                    score_cutoff=30)
-        if option is None:
-            raise ValueError('No server with similar name is found')
-        return Node.DICT_SERVER[option[0]][0]
-
-
-def maybe_str_or_int_storage(arg):
-    r = maybe_str_or_int(arg)
-    if isinstance(r, int):
-        if r < 0:
-            raise ValueError('Negative values for index of storages are forbiden')
-        elif r >= len(Node.DICT_STORAGE):
-            raise ValueError('There is no storage with that index')
-        return list(Node.DICT_STORAGE.items())[r][0]
-    else:
-        option = process.extractOne(r,
-                                    list(Node.DICT_STORAGE),
-                                    score_cutoff=30)
-        if option is None:
-            raise ValueError('No storage with similar name is found')
-        return Node.DICT_STORAGE[option[0]][0]
+def generate_str_or_int(name, dic ):
+    def wrapper(arg):
+        r = maybe_str_or_int(arg)
+        if isinstance(r, int):
+            if r < 0:
+                raise ValueError(f'Negative values for index of {name}s are forbiden')
+            elif r >= len(dic):
+                raise ValueError('There is no server with that index')
+            return list(dic.items())[r][0]
+        else:
+            option = process.extractOne(r, list(dic), score_cutoff=30)
+            if option is None:
+                raise ValueError(f'No {name} with similar name is found')
+            return dic[option[0]][0]
+    return wrapper
 
 
 class Node:
@@ -81,11 +64,11 @@ class Node:
     DICT_ORGANIZATION = defaultdict(list)
 
     def __init__(self, settings):
-        self.SERVER_URL = settings[0]
+        self.SERVER_URL = settings[0].rstrip()
         self.SERVER = re.match(r'[^\.]*', self.SERVER_URL)[0]
         self.OS = normalize_string(settings[1])
         self.STORAGE = re.match(r'/[^/]*/([^/]*)', settings[2]).group(1)
-        self.ORGANIZATION = settings[3]
+        self.ORGANIZATION = normalize_string(settings[3])
 
         Node.ALL_NODES.append(self)
         Node.DICT_STORAGE[self.STORAGE].append(self)
@@ -113,7 +96,7 @@ class Node:
 
     @classmethod
     def print_options(cls):
-        print('-'*80, io)
+        print('-'*80)
         for name, dct in [
                 ('Servers:', cls.DICT_SERVER),
                 ('Storages:', cls.DICT_STORAGE)]:
@@ -124,6 +107,10 @@ class Node:
 
 Node.initialize()
 Node.finalize()
+
+maybe_str_or_int_server = generate_str_or_int('server', Node.DICT_SERVER)
+maybe_str_or_int_storage = generate_str_or_int('server', Node.DICT_STORAGE)
+maybe_str_or_int_organization = generate_str_or_int('server', Node.DICT_ORGANIZATION)
 
 if __name__ == '__main__':
     # defines parser
@@ -140,16 +127,25 @@ if __name__ == '__main__':
     parser.add_argument('-d', '--storage', '--disk',
                         type=maybe_str_or_int_storage,
                         help='Name or index of a storage:\n' + '\n'.join(
-                            f'\t{i}) {n[0]}' for i,n in enumerate(Node.DICT_STORAGE.values())),
+                            f'\t{i}) {n}' for i,n in enumerate(Node.DICT_STORAGE.keys())),
+                        )
+    parser.add_argument('-o', '--organization', '--org',
+                        type=maybe_str_or_int_organization,
+                        help='Name or index of an organization:\n' + '\n'.join(
+                            f'\t{i}) {n}' for i,n in enumerate(Node.DICT_ORGANIZATION.keys())),
                         )
 
     args = parser.parse_args()
 
-    # defines default response
-    if args.server is None and args.storage is None:
-        server = Node.ALL_NODES[0]
+    if args.server is not None:
+        server = args.server
+    elif args.storage is not None:
+        server = args.storage
+    elif args.organization is not None:
+        server = args.organization
     else:
-        server = args.server or args.storage
+        server = Node.ALL_NODES[0]
+
 
     print('Processing:')
     print(server)
