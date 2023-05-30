@@ -7,7 +7,7 @@ db.dropAllUsers()
 db.createUser(
 	{ 
 		user: "admin", 
-		pwd: "adminpassword", 
+		pwd: passwordPrompt(),
 		roles: ["userAdminAnyDatabase", "dbAdminAnyDatabase", "readWriteAnyDatabase"]
 	}
 )
@@ -17,7 +17,7 @@ db.createUser(
 db.createUser(
 	{ 
 		user: "user", 
-		pwd: "userpassword", 
+		pwd: passwordPrompt(),
 		roles: ["readWriteAnyDatabase"]
 	}
 )
