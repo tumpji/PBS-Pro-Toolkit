@@ -30,5 +30,18 @@ echo "mongodb hard nofile 65535" | sudo tee -a /etc/security/limits.conf
 sudo systemctl enable mongod
 sudo reboot
 
+
+
+
+
+# Manual: /etc/mongo
+# net:
+#  port: 27017
+#  bindIp: 0.0.0.0
+# security:
+#  authorizaton: enabled
+
+
+
 #sudo systemctl start mongod
 
