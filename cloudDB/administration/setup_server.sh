@@ -11,6 +11,19 @@ sudo apt-get upgrade -y
 
 sudo apt-get install -y gnupg vim git zsh
 
+# ---------------------------------------------------------------------------------
+# set up this repository
+
+git clone https://github.com/tumpji/PBS-Pro-Toolkit.git
+
+# ---------------------------------------------------------------------------------
+# setup python
+
+sudo apt-get install -y python3-kerberos python3.11 python3.11-dev python3-pip libsnappy-dev
+
+sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
+pip3 install -r ~/PBS-Pro-Toolkit/cloudDB/requirements.txt
+
 
 # ---------------------------------------------------------------------------------
 # installation of MongoDB
@@ -28,13 +41,16 @@ echo "mongodb soft nofile 65535" | sudo tee -a /etc/security/limits.conf
 echo "mongodb hard nofile 65535" | sudo tee -a /etc/security/limits.conf
 
 sudo systemctl enable mongod
-sudo reboot
+sudo systemctl start mongod
+
+cd ~/PBS-Pro-Toolkit/cloudDB/
 
 
 
+# ---------------------------------------------------------------------------------
+# TODO: Manual
 
-
-# Manual: /etc/mongo
+# in /etc/mongo
 # net:
 #  port: 27017
 #  bindIp: 0.0.0.0
@@ -43,5 +59,16 @@ sudo reboot
 
 
 
-#sudo systemctl start mongod
+# ---------------------------------------------------------------------------------
+# reboot
+
+sudo reboot
+
+
+
+
+
+
+
+
 

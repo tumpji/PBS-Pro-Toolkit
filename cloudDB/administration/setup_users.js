@@ -1,4 +1,6 @@
 
+use admin
+
 /* remove all users */
 db.dropAllUsers()
 
