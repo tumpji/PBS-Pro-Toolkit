@@ -1,3 +1,4 @@
 pymongo[gssapi,aws,ocsp,snappy,zstd,encryption]
 configparser
 urllib
+tqdm
