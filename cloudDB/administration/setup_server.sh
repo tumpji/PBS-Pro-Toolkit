@@ -2,7 +2,6 @@
 # only for Ubuntu 22.04 LTS
 
 
-
 # ---------------------------------------------------------------------------------
 # update of the system
 
@@ -11,10 +10,12 @@ sudo apt-get upgrade -y
 
 sudo apt-get install -y gnupg vim git zsh
 
+
 # ---------------------------------------------------------------------------------
 # set up this repository
 
 git clone https://github.com/tumpji/PBS-Pro-Toolkit.git
+
 
 # ---------------------------------------------------------------------------------
 # setup python
@@ -40,23 +41,16 @@ sudo apt-get install -y mongodb-org
 echo "mongodb soft nofile 65535" | sudo tee -a /etc/security/limits.conf
 echo "mongodb hard nofile 65535" | sudo tee -a /etc/security/limits.conf
 
+sudo sysctl -w vm.max_map_count=262144
+echo "vm.max_map_count=262144" | sudo tee -a /etc/sysctl.conf
+
 sudo systemctl enable mongod
 sudo systemctl start mongod
 
-cd ~/PBS-Pro-Toolkit/cloudDB/
+mongosh --file ~/PBS-Pro-Toolkit/cloudDB/administration/setup_users.js
 
-
-
-# ---------------------------------------------------------------------------------
-# TODO: Manual
-
-# in /etc/mongo
-# net:
-#  port: 27017
-#  bindIp: 0.0.0.0
-# security:
-#  authorizaton: enabled
-
+sudo sed 's/bindIp:.*/bindIp: 0.0.0.0/' -i /etc/mongod.conf
+echo "security:\n authorization: enabled" | sudo tee -a /etc/mongod.conf
 
 
 # ---------------------------------------------------------------------------------

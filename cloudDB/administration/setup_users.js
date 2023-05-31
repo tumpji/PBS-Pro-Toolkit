@@ -1,4 +1,3 @@
-
 use admin
 
 /* remove all users */
