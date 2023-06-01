@@ -176,7 +176,13 @@ if __name__ == '__main__':
                         help='Name or index of an organization:\n' + '\n'.join(
                             f'\t{i}) {n}' for i,n in enumerate(Node.DICT_ORGANIZATION.keys())),
                         )
-    parser.add_argument('--scp', nargs=2, type=str)
+    parser.add_argument('--scp',
+                        nargs=2, type=str,
+                        help='download #1 argument to #2 argument'
+                        )
+    parser.add_argument('--command', '--cmd', type=str,
+                        help='run this command only'
+                        )
 
     args = parser.parse_args()
 
@@ -189,6 +195,9 @@ if __name__ == '__main__':
     else:
         server = Node.ALL_NODES[0]
 
+    if args.scp and args.command:
+        print('The use of SCP and command is not supported')
+        exit(1)
 
     print(f'Connecting to the {server}:')
     print(f'\t{server.STORAGE}\t{server.ORGANIZATION}')
@@ -207,6 +216,8 @@ if __name__ == '__main__':
                 'ssh',
                 f'{user}@{server.SERVER_URL}'
             ]
+            +
+            [args.command] if args.command else []
         )
 
 
