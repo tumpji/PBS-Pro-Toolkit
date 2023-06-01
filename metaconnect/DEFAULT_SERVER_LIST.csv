@@ -1,0 +1,12 @@
+skirit.ics.muni.cz 	Debian 11 	/storage/brno2/home/ 	meta-pbs.metacentrum.cz 	
+alfrid.meta.zcu.cz 	Debian 11 	/storage/plzen1/home/ 	meta-pbs.metacentrum.cz 	
+tarkil.grid.cesnet.cz 	Debian 11 	/storage/praha1/home/ 	meta-pbs.metacentrum.cz 	
+nympha.zcu.cz 	Debian 11 	/storage/plzen1/home/ 	meta-pbs.metacentrum.cz 	
+charon.nti.tul.cz 	Debian 11 	/storage/liberec3-tul/home/ 	meta-pbs.metacentrum.cz 	
+minos.zcu.cz 	Debian 11 	/storage/plzen1/home/ 	meta-pbs.metacentrum.cz 	alias for nympha.zcu.cz 	
+perian.grid.cesnet.cz 	Debian 10 	/storage/brno2/home/ 	meta-pbs.metacentrum.cz 	
+onyx.metacentrum.cz 	Debian 10 	/storage/brno2/home/ 	meta-pbs.metacentrum.cz 	alias for perian.grid.cesnet.cz
+tilia.ibot.cas.cz 	Debian 11 	/storage/pruhonice1-ibot/home/ 	meta-pbs.metacentrum.cz 	Cluster of the Institute of Botany, CAS
+zuphux.cerit-sc.cz 	CentOS 7.9 	/storage/brno3-cerit/home/ 	cerit-pbs.cerit-sc.cz 	
+elmo.elixir-czech.cz 	Debian 11 	/storage/praha5-elixir/home/ 	elixir-pbs.elixir-czech.cz 	
+builder.metacentrum.cz	Debian 11	/storage/praha1/home/	meta-pbs.metacentrum.cz	
