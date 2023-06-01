@@ -2,7 +2,15 @@
 import argparse
 import os
 
-from connect import Node
+from metaconnect import Node
+
+kerberos_config_string = '''
+KerberosAuthentication yes
+KerberosTicketCleanup yes
+GSSAPIAuthentication yes
+GSSAPICleanupCredentials yes
+UseDNS yes
+'''
 
 
 def generate_ssh_config(node, user, key):
@@ -40,22 +48,39 @@ if __name__ == '__main__':
                         default=os.path.expanduser('~/.ssh/config'),
                         help='path where the ssh config is stored')
 
+    parser.add_argument('--kerberos',
+                        action='store_true',
+                        help='Setup kerberos')
+
     args = parser.parse_args()
 
     # INTERNAL LOGIC:
 
+    # 
     q = f'''The program appends {len(Node.ALL_NODES)} items into {args.configpath}
     User = {args.user}
     Key = {'no key' if args.key is None else args.key}
 Is this OK? '''
 
-    if not yes_or_no(q):
-        exit(0)
+    if yes_or_no(q):
+        with open(args.configpath, 'a') as file:
+            file.write('\n\n#  >> THIS IS THE START OF AUTOMATICALLY GENERATED INPUT <<\n')
 
-    with open(args.configpath, 'a') as file:
-        file.write('\n\n#  >> THIS IS THE START OF AUTOMATICALLY GENERATED INPUT <<\n')
+            for node in Node.ALL_NODES:
+                file.write(generate_ssh_config(node, args.user, args.key))
 
-        for node in Node.ALL_NODES:
-            file.write(generate_ssh_config(node, args.user, args.key))
+            file.write('\n\n#  >> THIS IS THE END OF AUTOMATICALLY GENERATED INPUT <<\n')
 
-        file.write('\n\n#  >> THIS IS THE END OF AUTOMATICALLY GENERATED INPUT <<\n')
+    # KERBEROS
+    if args.kerberos:
+        q = f'''The program appends kerberos setting into {args.configpath}
+Is this OK? '''
+        if yes_or_no(q):
+            with open(args.configpath, 'a') as file:
+                file.write('\n\n#  >> THIS IS THE START OF AUTOMATICALLY GENERATED INPUT <<\n')
+                file.write(kerberos_config_string)
+                file.write('\n\n#  >> THIS IS THE END OF AUTOMATICALLY GENERATED INPUT <<\n')
+
+        print("You need to install krb5_user' package to the system")
+
+
