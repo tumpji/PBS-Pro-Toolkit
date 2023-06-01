@@ -1,4 +1,8 @@
 
 # singularity containers
 *.sif
+
+# python
 __pycache__/
+
+
