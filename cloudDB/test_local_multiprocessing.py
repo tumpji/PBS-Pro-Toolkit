@@ -4,15 +4,14 @@ import time
 import tqdm
 from multiprocessing import Process, Queue
 
-import make_task as dbmodule
+import cloud_db as dbmodule
 
 
 def compute(q: Queue):
     o = []
     try:
         while True:
-            with connection as work:
-                data = work.data
+            with connection as data:
                 o.append(data['task'])
 
                 assert(data['task'] == data['control'] // 2)
@@ -30,13 +29,13 @@ connection = dbmodule.DBConnection('test')
 
 # remove data
 print('Removing data from previous test')
-connection.drop_all()
+connection.drop_everything()
 
 # fill in work
 N = 2000
 print('Inserting data:')
 for task in tqdm.tqdm(iterable=range(N), total=N):
-    connection.insert_free({'task': task, 'control': task * 2, 'extra': 'extra'})
+    connection.insert_one_unfinished_job({'task': task, 'control': task * 2, 'extra': 'extra'})
 
 
 # ---------------------------------------------------------------------------
