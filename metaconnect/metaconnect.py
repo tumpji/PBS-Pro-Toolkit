@@ -1,4 +1,4 @@
-#!/usr/bin/python3.11
+#!/usr/bin/python3
 import os
 import re
 import operator
@@ -154,7 +154,8 @@ maybe_str_or_int_server = generate_str_or_int('server', Node.DICT_SERVER)
 maybe_str_or_int_storage = generate_str_or_int('server', Node.DICT_STORAGE)
 maybe_str_or_int_organization = generate_str_or_int('server', Node.DICT_ORGANIZATION)
 
-if __name__ == '__main__':
+
+def main(*args):
     # defines parser
     parser = argparse.ArgumentParser(
         prog='SSHMeta',
@@ -184,7 +185,7 @@ if __name__ == '__main__':
                         help='run this command only'
                         )
 
-    args = parser.parse_args()
+    args = parser.parse_args(*args)
 
     if args.server is not None:
         server = args.server
@@ -217,7 +218,11 @@ if __name__ == '__main__':
                 f'{user}@{server.SERVER_URL}'
             ]
             +
-            [args.command] if args.command else []
+            ([args.command] if args.command else [])
         )
+
+
+if __name__ == '__main__':
+    main()
 
 
