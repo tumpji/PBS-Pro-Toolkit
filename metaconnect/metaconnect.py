@@ -10,7 +10,15 @@ import configparser
 
 import argparse
 import subprocess
-from fuzzywuzzy import process
+from thefuzz import process
+
+
+def chain_map(*lambdas):
+    def wrapper(x):
+        for lam in lambdas:
+            x = lam(x)
+        return x
+    return wrapper
 
 
 def yes_or_no(question):
@@ -81,7 +89,7 @@ def maybe_str_or_int(arg):
     return arg
 
 
-def generate_str_or_int(name, dic ):
+def generate_str_or_int(name, dic, alternative=None):
     def wrapper(arg):
         r = maybe_str_or_int(arg)
         if isinstance(r, int):
@@ -91,10 +99,18 @@ def generate_str_or_int(name, dic ):
                 raise ValueError('There is no server with that index')
             return list(dic.items())[r][0]
         else:
-            option = process.extractOne(r, list(dic), score_cutoff=30)
+            full_options = dict((x, x) for x in dic)
+            if alternative:
+                for x in dic:
+                    alt = alternative(x)
+                    for a in alt if alt is not None else []:
+                        full_options[a] = x
+
+            option = process.extractOne(r, full_options, score_cutoff=30)
             if option is None:
                 raise ValueError(f'No {name} with similar name is found')
-            return dic[option[0]][0]
+
+            return dic[full_options[option[0]]][0]
     return wrapper
 
 
@@ -150,8 +166,10 @@ configuration = ConfigurationManager()
 Node.initialize(configuration)
 Node.finalize()
 
+
 maybe_str_or_int_server = generate_str_or_int('server', Node.DICT_SERVER)
-maybe_str_or_int_storage = generate_str_or_int('server', Node.DICT_STORAGE)
+maybe_str_or_int_storage = generate_str_or_int(
+    'server', Node.DICT_STORAGE, alternative=lambda x: x.split('-'))
 maybe_str_or_int_organization = generate_str_or_int('server', Node.DICT_ORGANIZATION)
 
 
@@ -165,17 +183,17 @@ def main(*args):
     parser.add_argument('-s', '--server',
                         type=maybe_str_or_int_server,
                         help='Name or index of a server:\n' + '\n'.join(
-                            f'\t{i}) {n[0]}' for i,n in enumerate(Node.DICT_SERVER.values())),
+                            f'\t{i}) {n[0]}' for i, n in enumerate(Node.DICT_SERVER.values())),
                         )
     parser.add_argument('-d', '--storage', '--disk',
                         type=maybe_str_or_int_storage,
                         help='Name or index of a storage:\n' + '\n'.join(
-                            f'\t{i}) {n}' for i,n in enumerate(Node.DICT_STORAGE.keys())),
+                            f'\t{i}) {n}' for i, n in enumerate(Node.DICT_STORAGE.keys())),
                         )
     parser.add_argument('-o', '--organization', '--org',
                         type=maybe_str_or_int_organization,
                         help='Name or index of an organization:\n' + '\n'.join(
-                            f'\t{i}) {n}' for i,n in enumerate(Node.DICT_ORGANIZATION.keys())),
+                            f'\t{i}) {n}' for i, n in enumerate(Node.DICT_ORGANIZATION.keys())),
                         )
     parser.add_argument('--scp',
                         nargs=2, type=str,

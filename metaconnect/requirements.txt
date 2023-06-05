@@ -1,4 +1,4 @@
-fuzzywuzzy
+thefuzz
 python-Levenshtein
 configparser
 config_path
