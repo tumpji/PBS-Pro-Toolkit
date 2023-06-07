@@ -1,0 +1,18 @@
+Bootstrap: localimage
+From: ../env_container_11.sif
+
+%environment
+    CLOUD_DB_DATABASE=AUTO_FILL_COLLECTION
+    CLOUD_DB_AUTHENTICATION_PATH=/storage/praha1/home/AUTO_FILL_USER/AUTHENTICATION.ini
+
+%runscript
+    git clone --recurse-submodules -j8 https://github.com/tumpji/ModularCMAES.git
+    python3.11 ModularCMAES/setup.py develop
+
+    git clone --recurse-submodules -j8 https://github.com/tumpji/PBS-Pro-Toolkit.git
+    python3.11 /PBS-Pro-Toolkit/cloudDB/run_client.py modcma
+   
+
+    
+
+

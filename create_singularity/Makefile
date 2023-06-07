@@ -1,11 +1,5 @@
+.PHONY:
 
-.PHONY: run
-
-run: container.sif
-	singularity shell $<
-
-container.sif: container_definition.def requirements.txt
-	singularity build $@ $<
-
-
+env_container_11.sif: container_definition.def 
+	singularity build --fakeroot $@ $<
 

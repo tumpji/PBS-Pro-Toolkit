@@ -1,4 +1,3 @@
-pymongo[gssapi,aws,ocsp,snappy,zstd,encryption]
+pymongo
 configparser
-urllib
 tqdm
