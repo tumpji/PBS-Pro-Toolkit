@@ -13,14 +13,17 @@ UseDNS yes
 '''
 
 
-def generate_ssh_config(node, user, key):
+def generate_ssh_config(node, config):
     result = f'''
 Host {node.SERVER}
 \tHostName {node.SERVER_URL}
-\tUser {user}
+\tUser {config.user}
 '''
-    if key is not None:
-        result += f'''\tIdentityFile {key}
+    if config.key is not None:
+        result += f'''\tIdentityFile {config.key}
+    '''
+    if config.nopass is not None:
+        result += '''\tPasswordAuthentication no
     '''
     return result
 
@@ -40,11 +43,19 @@ if __name__ == '__main__':
         description='Adds shortcuts into /.ssh/config file + sshkeys',
     )
 
-    parser.add_argument('--key', type=str, help='path to ssh private key')
-
-    parser.add_argument('--user', type=str, default=os.getlogin(),
+    # auth
+    parser.add_argument('--user',
+                        type=str,
+                        default=os.getlogin(),
                         help='username for metacentrum')
-    parser.add_argument('--configpath', type=str,
+    parser.add_argument('--key',
+                        type=str,
+                        help='path to ssh private key')
+    parser.add_argument('--nopass',
+                        action='store_true',
+                        help='disable password auth.')
+    parser.add_argument('--configpath',
+                        type=str,
                         default=os.path.expanduser('~/.ssh/config'),
                         help='path where the ssh config is stored')
 
