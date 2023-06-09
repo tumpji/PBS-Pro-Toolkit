@@ -41,14 +41,16 @@
 #    # move erroed to free
 #    connection.renew_all_errored()
 
-import configparser
-import urllib.parse
+import os
 import datetime
 from typing import List, Dict, Any
+from urllib.parse import quote_plus as quote
 
 from pymongo import MongoClient
 from pymongo.database import Database
 from pymongo.collection import Collection
+
+import configparser
 
 JobType = Dict[str, Any]
 
@@ -62,20 +64,28 @@ class DBConnectionBase:
     Connects to the database specified by the configuration file
 
     '''
-    def __init__(self, MONGO_DB, config_path='AUTHENTICATION.ini'):
+
+    def __init__(self, collection_name: str, config_path=None):
         config = configparser.ConfigParser()
-        config.read(config_path)
 
-        # Replace these with your server details
-        MONGO_HOST = "147.251.115.70"
-        MONGO_PORT = "27017"
-        MONGO_USER = urllib.parse.quote_plus(config['AUTHENTICATION']['USERNAME'])
-        MONGO_PASS = urllib.parse.quote_plus(config['AUTHENTICATION']['PASSWORD'])
+        # 1. try to find AUTHENTICATION.ini
+        if config_path is not None:
+            config.read(config_path)
+        elif 'CloudDBAuthenticationPath' in os.environ:
+            config.read(os.environ['CloudDBAuthenticationPath'])
+        elif 'AUTHENTICATION.ini' in os.listdir():
+            config.read('AUTHENTICATION.ini')
+        else:
+            raise FileNotFoundError('The AUTHENTICATION.ini file is not found')
 
-        uri = f"mongodb://{MONGO_USER}:{MONGO_PASS}@{MONGO_HOST}:{MONGO_PORT}/{MONGO_DB}?authSource=admin"
+        config = config['CloudDB']
+
+        urluser = f"{quote(config['USERNAME'])}:{quote(config['PASSWORD'])}"
+        urlhost = f"{config['HOST']}:{config['PORT']}"
+        uri = f"mongodb://{urluser}@{urlhost}/{collection_name}?authSource=admin"
+
         self.client = MongoClient(uri)
-
-        self.db = self.client[MONGO_DB]
+        self.db = self.client[collection_name]
 
 
 class DBConnectionToolKit(DBConnectionBase):
