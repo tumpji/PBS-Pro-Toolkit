@@ -1,14 +1,24 @@
+#!/bin/bash
 set -e 
 set -u
 
 # counter of steps
 ACT_STEP=1
-STEPS=$(grep '^step(' $0 | wc -l)
+STEPS=$(grep '^step' $0 | wc -l)
 
 function step {
 	echo "($ACT_STEP/$STEPS): $1" 
   ACT_STEP=$((ACT_STEP + 1))
 }
+
+if [ $# -lt 1 ]; 
+then
+	echo "You need to provide the name of the experiment you want to create"
+	echo "make_experiment.sh <the-name>"
+	echo "make_experiment.sh <the-name> <root-folder>"
+	echo "  default <root-folder> is the current directory"
+	exit 1
+fi
 
 # it is advised to check these settings:
 EXPNAME=$1
@@ -19,11 +29,17 @@ GITDIR=$ROOTDIR/PBS-Pro-Toolkit
 AUTHENTICATION=$ROOTDIR/AUTHENTICATION.ini
 
 
-echo "Building Experiment '$EXPNAME' in folder '$DIRNAME'"
+echo
+echo "Building Experiment '${EXPNAME}' in folder '$DIRNAME'"
 
 
 # -------------------------------------------------
-step("Checking files...")
+step "Checking files..."
+
+if [ ! $(hostname) != "builder.grid.cesnet.cz" ]; then
+	echo "WARNING: You may find it hard to build container on this machine."
+	echo "\tconsider switching to builder.grid.cesnet.cz"
+fi
 
 if [ ! -d "${ROOTDIR}" ]; then
 	echo "Cannot find ROOTDIR -- ${ROOTDIR}"
@@ -37,43 +53,51 @@ fi
 
 if [ ! -f "${AUTHENTICATION}" ]; then
 	echo "Cannot find AUTHENTICATION -- ${AUTHENTICATION}"
+	echo "You can copy the template in ${GITDIR}/cloudDB/AUTHENTICATION.ini"
 	exit 1
-	# TODO check 0600 
 fi
+
+if [ "$(stat -L -c "%A" ${AUTHENTICATION})" != "-r--------" ]; then
+	echo "Secure abort."
+	echo "Set the ${AUTHENTICATION} file to be user-read only"
+	echo "Hint: chmod 0400 ${AUTHENTICATION}"
+	exit 1
+fi	
 
 while true; do
     read -p "Do you wish to build this environment? " yn
     case $yn in
         [Yy]* ) break;;
-        [Nn]* ) exit;;
+        [Nn]* ) echo "Aborting..."; 
+		exit 0;;
         * ) echo "Please answer yes or no.";;
     esac
 done
 
 
 # -------------------------------------------------
-step("Creating directories...")
+step "Creating directories..."
 
-mkdir -p "$ROOTDIR/output/$EXPNAME" 2>/dev/null || true
-mkdir -p "$ROOTDIR/logs/$EXPNAME" 2>/dev/null || true
+mkdir -p "$ROOTDIR/output/${EXPNAME}" 2>/dev/null || true
+mkdir -p "$ROOTDIR/logs/${EXPNAME}" 2>/dev/null || true
 mkdir "$ROOTDIR/containers" 2>/dev/null || true
 mkdir "$ROOTDIR/qsub_scripts" 2>/dev/null || true
 mkdir "$ROOTDIR/task_scripts" 2>/dev/null || true
 
-OUTPUT_DIR="$ROOTDIR/output/$EXPNAME"
-LOG_DIR="$ROOTDIR/logs/$EXPNAME"
+OUTPUT_DIR="$ROOTDIR/output/${EXPNAME}"
+LOG_DIR="$ROOTDIR/logs/${EXPNAME}"
 CONTAINER_DIR="$ROOTDIR/containers"
 QSUB_DIR="$ROOTDIR/qsub_scripts"
 TASK_SCRIPTS="$ROOTDIR/task_scripts"
 
 
 # ------------------------------------------------
-step("Building container...")
+step "Building container..."
 
-SINGULARITY_DEFINITION_DIR="${GITDIR}/create_singularity/projects/"
+SINGULARITY_DEFINITION_DIR="${GITDIR}/create_singularity/projects"
 SINGULARITY_DEFINITION_PATH_TEMPLATE="${SINGULARITY_DEFINITION_DIR}/template.deffile"
-SINGULARITY_DEFINITION_PATH="${SINGULARITY_DEFINITION_DIR}/$EXPNAME.def"
-SINGULARITY_SIF_PATH="${CONTAINER_DIR}/$EXPNAME.sif"
+SINGULARITY_DEFINITION_PATH="${SINGULARITY_DEFINITION_DIR}/${EXPNAME}.def"
+SINGULARITY_SIF_PATH="${CONTAINER_DIR}/${EXPNAME}.sif"
 
 while true; do
     read -p "Do you wish to use default singularity definition file? " yn
@@ -83,8 +107,8 @@ while true; do
 			echo "\tContainer found"
 		else
 			cp "${SINGULARITY_DEFINITION_PATH_TEMPLATE}" "${SINGULARITY_DEFINITION_PATH}"
-			make -C ${SINGULARITY_DEFINITION_DIR} "$EXPNAME.sif"
-			mv "${SINGULARITY_DEFINITION_DIR}/$EXPNAME.sif" "${SINGULARITY_SIF_PATH}"
+			make -C ${SINGULARITY_DEFINITION_DIR} "${EXPNAME}.sif"
+			mv "${SINGULARITY_DEFINITION_DIR}/${EXPNAME}.sif" "${SINGULARITY_SIF_PATH}"
 		fi
 		break;;
         [Nn]* ) echo "Finding containers ..."
@@ -93,8 +117,8 @@ while true; do
 		elif [ -e "${SINGULARITY_DEFINITION_PATH}" ]; then
 			echo "\tContainer not found but there is definition file available..."
 			echo "\tBuilding ..."
-			make -C ${SINGULARITY_DEFINITION_DIR} "$EXPNAME.sif"
-			mv "${SINGULARITY_DEFINITION_DIR}/$EXPNAME.sif" "${SINGULARITY_SIF_PATH}"
+			make -C ${SINGULARITY_DEFINITION_DIR} "${EXPNAME}.sif"
+			mv "${SINGULARITY_DEFINITION_DIR}/${EXPNAME}.sif" "${SINGULARITY_SIF_PATH}"
 		else
 			echo "Error: cannot find .sif or .def file"
 			echo "Create singularity definition file in ${SINGULARITY_DEFINITION_PATH} and re-run the script."
@@ -108,7 +132,7 @@ done
 
 
 # -----------------------------------------------
-step("Creating qsub script...")
+step "Creating qsub script..."
 
 QSUB_TEMPLATE_PATH="${GITDIR}/create_singularity/qsub_template.sh"
 QSUB_OUTPUT_PATH="${QSUB_DIR}/${EXPNAME}.sh"
@@ -138,7 +162,7 @@ fi
 
 
 # ------------------------------------------------
-step("Making task script...")
+step "Making task script..."
 
 cp ${GITDIR}/cloudDB/template_job_creation.py "$TASK_SCRIPTS/${EXPNAME}.py"
 ln -s $TASK_SCRIPTS/${EXPNAME}.py ${EXPNAME}.py
