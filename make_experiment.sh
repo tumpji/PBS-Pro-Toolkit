@@ -1,13 +1,45 @@
 set -e 
 set -u
 
+# counter of steps
+ACT_STEP=1
+STEPS=$(grep '^step(' $0 | wc -l)
 
-ROOTDIR=/storage/praha1/home/${USER}/
-GITDIR=/storage/praha1/home/${USER}/PBS-Pro-Toolkit
-AUTHENTICATION=/storage/praha1/home/${USER}/AUTHENTICATION.ini
+function step {
+	echo "($ACT_STEP/$STEPS): $1" 
+  ACT_STEP=$((ACT_STEP + 1))
+}
+
+# it is advised to check these settings:
+EXPNAME=$1
+DIRNAME=${2:-$(pwd)}
+
+ROOTDIR=$DIRNAME
+GITDIR=$ROOTDIR/PBS-Pro-Toolkit
+AUTHENTICATION=$ROOTDIR/AUTHENTICATION.ini
 
 
-echo "Building Experiment '$1'"
+echo "Building Experiment '$EXPNAME' in folder '$DIRNAME'"
+
+
+# -------------------------------------------------
+step("Checking files...")
+
+if [ ! -d "${ROOTDIR}" ]; then
+	echo "Cannot find ROOTDIR -- ${ROOTDIR}"
+	exit 1
+fi
+
+if [ ! -d "${GITDIR}" ]; then
+	echo "Cannot find GITDIR -- ${GITDIR}"
+	exit 1
+fi
+
+if [ ! -f "${AUTHENTICATION}" ]; then
+	echo "Cannot find AUTHENTICATION -- ${AUTHENTICATION}"
+	exit 1
+	# TODO check 0600 
+fi
 
 while true; do
     read -p "Do you wish to build this environment? " yn
@@ -18,27 +50,30 @@ while true; do
     esac
 done
 
-ACT_STEP=1
-STEPS=2
 
-# 1
-echo "($ACT_STEP/$STEPS) Create output directories ..."
-mkdir "$ROOTDIR/output"    2>/dev/null || true
-mkdir "$ROOTDIR/output/$1" 2>/dev/null || true
+# -------------------------------------------------
+step("Creating directories...")
+
+mkdir -p "$ROOTDIR/output/$EXPNAME" 2>/dev/null || true
+mkdir -p "$ROOTDIR/logs/$EXPNAME" 2>/dev/null || true
 mkdir "$ROOTDIR/containers" 2>/dev/null || true
-mkdir "$ROOTDIR/qsubscripts" 2>/dev/null || true
+mkdir "$ROOTDIR/qsub_scripts" 2>/dev/null || true
+mkdir "$ROOTDIR/task_scripts" 2>/dev/null || true
 
-OUTPUT_DIR="$ROOTDIR/output/$1"
+OUTPUT_DIR="$ROOTDIR/output/$EXPNAME"
+LOG_DIR="$ROOTDIR/logs/$EXPNAME"
+CONTAINER_DIR="$ROOTDIR/containers"
+QSUB_DIR="$ROOTDIR/qsub_scripts"
+TASK_SCRIPTS="$ROOTDIR/task_scripts"
 
 
-# 2
-ACT_STEP=$((ACT_STEP + 1))
-echo "($ACT_STEP/$STEPS) Building container ..."
+# ------------------------------------------------
+step("Building container...")
 
 SINGULARITY_DEFINITION_DIR="${GITDIR}/create_singularity/projects/"
 SINGULARITY_DEFINITION_PATH_TEMPLATE="${SINGULARITY_DEFINITION_DIR}/template.deffile"
-SINGULARITY_DEFINITION_PATH="${SINGULARITY_DEFINITION_DIR}/$1.def"
-SINGULARITY_SIF_PATH="${ROOTDIR}/containers/$1.sif"
+SINGULARITY_DEFINITION_PATH="${SINGULARITY_DEFINITION_DIR}/$EXPNAME.def"
+SINGULARITY_SIF_PATH="${CONTAINER_DIR}/$EXPNAME.sif"
 
 while true; do
     read -p "Do you wish to use default singularity definition file? " yn
@@ -48,8 +83,8 @@ while true; do
 			echo "\tContainer found"
 		else
 			cp "${SINGULARITY_DEFINITION_PATH_TEMPLATE}" "${SINGULARITY_DEFINITION_PATH}"
-			make -C ${SINGULARITY_DEFINITION_DIR} "$1.sif"
-			mv "${SINGULARITY_DEFINITION_DIR}/$1.sif" "${SINGULARITY_SIF_PATH}"
+			make -C ${SINGULARITY_DEFINITION_DIR} "$EXPNAME.sif"
+			mv "${SINGULARITY_DEFINITION_DIR}/$EXPNAME.sif" "${SINGULARITY_SIF_PATH}"
 		fi
 		break;;
         [Nn]* ) echo "Finding containers ..."
@@ -58,8 +93,8 @@ while true; do
 		elif [ -e "${SINGULARITY_DEFINITION_PATH}" ]; then
 			echo "\tContainer not found but there is definition file available..."
 			echo "\tBuilding ..."
-			make -C ${SINGULARITY_DEFINITION_DIR} "$1.sif"
-			mv "${SINGULARITY_DEFINITION_DIR}/$1.sif" "${SINGULARITY_SIF_PATH}"
+			make -C ${SINGULARITY_DEFINITION_DIR} "$EXPNAME.sif"
+			mv "${SINGULARITY_DEFINITION_DIR}/$EXPNAME.sif" "${SINGULARITY_SIF_PATH}"
 		else
 			echo "Error: cannot find .sif or .def file"
 			echo "Create singularity definition file in ${SINGULARITY_DEFINITION_PATH} and re-run the script."
@@ -72,13 +107,11 @@ while true; do
 done
 
 
-
-# 3
-ACT_STEP=$((ACT_STEP + 1))
-echo "($ACT_STEP/$STEPS) Creating qsub script ..."
+# -----------------------------------------------
+step("Creating qsub script...")
 
 QSUB_TEMPLATE_PATH="${GITDIR}/create_singularity/qsub_template.sh"
-QSUB_OUTPUT_PATH="${GITDIR}/create_singularity/qsub_template.sh"
+QSUB_OUTPUT_PATH="${QSUB_DIR}/${EXPNAME}.sh"
 
 if [ -e "${QSUB_OUTPUT_PATH}" ]; 
 then
@@ -93,6 +126,8 @@ else
 		-i "${QSUB_OUTPUT_PATH}"
 	sed "s|<AUTO_FILL_IN_AUTHENTICATION_PATH>|${AUTHENTICATION}|" \
 		-i "${QSUB_OUTPUT_PATH}"
+	sed "s|<AUTO_FILL_IN_LOGS_PATH>|${LOG_DIR}" \
+		-i "${QSUB_OUTPUT_PATH}"
 
 	# check if something is missing...
 	if grep -q AUTO_FILL_IN "${QSUB_OUTPUT_PATH}"; then
@@ -102,8 +137,11 @@ else
 fi
 
 
-# 4
-ACT_STEP=$((ACT_STEP + 1))
-echo "($ACT_STEP/$STEPS) Running qsub script ..."
-echo "TODO"
+# ------------------------------------------------
+step("Making task script...")
+
+cp ${GITDIR}/cloudDB/template_job_creation.py "$TASK_SCRIPTS/${EXPNAME}.py"
+ln -s $TASK_SCRIPTS/${EXPNAME}.py ${EXPNAME}.py
+
+
 

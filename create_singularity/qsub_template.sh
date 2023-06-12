@@ -4,7 +4,7 @@
 #PBS -l walltime=2:00:00
 #PBS -j oe
 #PBS -m ae
-#PBS -o /storage/praha1/home/tumpji/logs
+#PBS -o <AUTO_FILL_IN_LOGS_PATH>
 
 set -e
 set -u

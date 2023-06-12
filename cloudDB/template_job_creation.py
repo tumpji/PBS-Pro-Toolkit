@@ -82,7 +82,6 @@ if __name__ == '__main__':
                         required=True)
 
     # only for inserts
-    parser.add_argument('--check', action='store_true')
     parser.add_argument('--multiprocessing', action='store_true')
     parser.add_argument('--threads', type=int, default=None)
     args = parser.parse_args()
