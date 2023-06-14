@@ -28,7 +28,7 @@ try:
             # set new args ...
 
             if args.use_function:
-                imported_module.main(arg_dict)
+                imported_module.main(**arg_dict)
             else:
                 # set args 
                 new_args = []

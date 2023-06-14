@@ -11,10 +11,7 @@ from mock import patch
 import clouddb as db
 
 
-def main(kwargs):
-    path = kwargs['path']
-    del kwargs['path']
-
+def main(*, path, **kwargs):
     with open(path, 'a') as f:
         f.write(json.dumps(kwargs, sort_keys=True))
         f.write('\n')
@@ -76,14 +73,14 @@ if __name__ == '__main__':
                 self.assertEqual(len(data), 5)
 
         def test_function_main(self):
-            sys.argv = ['cloudDB.__main__',
+            sys.argv = ['clouddb.__main__',
                         '--collection', 'test',
                         '--package', 'test_module_interface']
 
             with open(os.devnull, 'w') as devnull:
                 with patch('sys.stdout', devnull):
                     with patch('sys.stderr', devnull):
-                        runpy.run_module('cloudDB', run_name='__main__')
+                        runpy.run_module('clouddb', run_name='__main__')
 
             dlist = []
             with open(self.tmpfile.name, 'r') as f:
