@@ -1,5 +1,5 @@
 #!/bin/sh
-#PBS -N myJobName
+#PBS -N <AUTO_FILL_IN_COLLECTION>
 #PBS -l select=1:ncpus=1:mem=8gb:scratch_local=10g
 #PBS -l walltime=2:00:00
 #PBS -j oe
@@ -18,11 +18,11 @@ AUTHENTICATION_FILE=<AUTO_FILL_IN_AUTHENTICATION_PATH>
 
 echo "Start Log: ----------------------------------"
 env
-echo "\tHostname: `hostname -f`"
-echo "\tScratch path: $SCRATCHDIR"
+echo -e "\tHostname: `hostname -f`"
+echo -e "\tScratch path: $SCRATCHDIR"
 
-echo "\tSINGULARITY CONTAINER PATH: ${SINGULARITY_CONTAINER_PATH}"
-echo "\tOUTPUT_DIR: ${OUTPUT_DIR}"
+echo -e "\tSINGULARITY CONTAINER PATH: ${SINGULARITY_CONTAINER_PATH}"
+echo -e "\tOUTPUT_DIR: ${OUTPUT_DIR}"
 echo "End Log: ----------------------------------"
 
 
@@ -57,12 +57,9 @@ ln -s "${OUTPUT_DIR}" output
 # AUTHENTICATION.ini
 # 
 
-singularity run container.sif
+singularity run --env "COLLECTION=<AUTO_FILL_IN_COLLECTION>,PACKAGE=<AUTO_FILL_IN_PACKAGE>" container.sif
 
 
 
 # clean the SCRATCH directory
 clean_scratch
-
-
-

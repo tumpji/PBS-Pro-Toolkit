@@ -1,11 +1,12 @@
 #!/usr/bin/python3
+#insertpath
 import os
 import itertools
 from typing import Generator, Dict, Union
 from multiprocessing import Process, Queue
 import argparse
 
-import cloud_db as db
+import cloudDB as db
 
 CHUNK_SIZE = 100
 MAX_QUEUE_SIZE = 100
@@ -89,8 +90,7 @@ if __name__ == '__main__':
     print('Establishing connection...')
     connection = db.DBConnection(args.collection)
 
-    match args.action:
-        case 'insert' | 'add':
+    if args.action in ['insert', 'add']:
             print('Insert...')
             if args.multiprocessing:
                 multiprocessing(connection, args)
@@ -98,19 +98,19 @@ if __name__ == '__main__':
                 for batch_job in get_chunks():
                     connection.insert_many_unfinished_jobs(batch_job)
             print('Ok...')
-        case 'drop_all' | 'clean_all':
+    elif args.action in ['drop_all', 'clean_all']:
             print('Droping...')
             connection.drop_everything()
             print('Ok...')
-        case 'refresh_blocked' | 'refresh_blocks' | 'clean_blocked' | 'clean_blocks':
+    elif args.action in ['refresh_blocked', 'refresh_blocks', 'clean_blocked', 'clean_blocks']:
             print('Renewing all blocked...')
             connection.renew_all_blocked()
             print('Ok...')
-        case 'refresh_errored' | 'refresh_errors' | 'clean_errored' | 'clean_errors':
+    elif args.action in ['refresh_errored', 'refresh_errors', 'clean_errored', 'clean_errors']:
             print('Renewing all errorred...')
             connection.renew_all_errored()
             print('Ok...')
-        case 'show' | 'list' | 'display':
+    elif args.action in ['show', 'list', 'display']:
             a = connection.number_of(connection.jobs_unfinished)
             b = connection.number_of(connection.jobs_blocked)
             c = connection.number_of(connection.jobs_errored)
@@ -119,6 +119,6 @@ if __name__ == '__main__':
             print(f"Unfinished: {a}, Blocked: {b}, Errored: {c}, Finished: {d}")
             if r > 0:
                 print(f"Unfinished: {a/r:.2f}, Blocked: {b/r:.2f}, Errored: {c/r:.2f}, Finished: {d/r:.2f}")
-        case _:
-            raise NotImplementedError(f"The option '{args.action}' is not implemented")
+    else:
+        raise NotImplementedError(f"The option '{args.action}' is not implemented")
 
