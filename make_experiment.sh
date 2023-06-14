@@ -53,7 +53,7 @@ fi
 
 if [ ! -f "${AUTHENTICATION}" ]; then
 	echo "Cannot find AUTHENTICATION -- ${AUTHENTICATION}"
-	echo "You can copy the template in ${GITDIR}/cloudDB/AUTHENTICATION.ini"
+	echo "You can copy the template in ${GITDIR}/clouddb/AUTHENTICATION.ini"
 	exit 1
 fi
 
@@ -249,7 +249,7 @@ fi
 step "Making task script..."
 
 
-cp "${GITDIR}/cloudDB/template_job_creation.py" "${TASK_SCRIPTS}/${EXPNAME}.py"
+cp "${GITDIR}/clouddb/template_job_creation.py" "${TASK_SCRIPTS}/${EXPNAME}.py"
 sed "s|#insertpath|import sys;sys.path.append('${GITDIR}')|" -i "${TASK_SCRIPTS}/${EXPNAME}.py"
 
 

@@ -75,11 +75,13 @@ path-include=/usr/share/doc/*/copyright
 
     # installs modcma
     git clone --recurse-submodules -j8 https://github.com/tumpji/ModularCMAES.git
-    python3.11 ModularCMAES/setup.py develop
+    cd ModularCMAES
+    python3.11 setup.py develop
+    cd ..
 
     # runs modcma
     git clone --recurse-submodules -j8 https://github.com/tumpji/PBS-Pro-Toolkit.git
-    python3.11 -m PBS-Pro-Toolkit/cloudDB --collection "${COLLECTION}" --package "${PACKAGE}"
+    python3.11 -m clouddb --collection "${COLLECTION}" --package "${PACKAGE}"
    
 
     

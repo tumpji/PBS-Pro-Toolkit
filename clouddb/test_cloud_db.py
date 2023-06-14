@@ -3,7 +3,7 @@ import unittest
 import time
 
 import datetime
-from cloud_db import DBConnection
+from clouddb import DBConnection
 
 
 class TestConnection(unittest.TestCase):

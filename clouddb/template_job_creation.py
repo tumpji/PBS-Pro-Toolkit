@@ -6,7 +6,7 @@ from typing import Generator, Dict, Union
 from multiprocessing import Process, Queue
 import argparse
 
-import cloudDB as db
+import clouddb as db
 
 CHUNK_SIZE = 100
 MAX_QUEUE_SIZE = 100

@@ -4,7 +4,7 @@ import time
 import tqdm
 from multiprocessing import Process, Queue
 
-import cloud_db as dbmodule
+import clouddb as dbmodule
 
 
 def compute(q: Queue):

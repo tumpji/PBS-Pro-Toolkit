@@ -8,7 +8,7 @@ import sys
 import os
 from mock import patch
 
-import cloud_db as db
+import clouddb as db
 
 
 def main(kwargs):

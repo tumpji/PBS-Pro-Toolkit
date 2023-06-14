@@ -4,7 +4,7 @@ import runpy
 import importlib
 import argparse
 
-from cloud_db import DBConnection, NoMoreWork
+from clouddb import DBConnection, NoMoreWork
 
 
 parser = argparse.ArgumentParser()
