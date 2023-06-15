@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "clouddb"
+version = "0.4.1"
+description = ""
+authors = ["Jiří Tumpach "]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+pymongo = "^4.3.3"
+
+[tool.poetry.group.dev.dependencies]
+mock = "^5.0.2"
+sphinx = "^7.0.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+tests = 'tests:test'

@@ -3,6 +3,7 @@ import unittest
 import time
 
 import datetime
+
 from clouddb import DBConnection
 
 
@@ -146,5 +147,6 @@ class TestConnection(unittest.TestCase):
         self.assertIsNone(res)
 
 
-unittest.main()
+if __name__ == '__main__':
+    unittest.main()
 

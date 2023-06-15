@@ -206,8 +206,3 @@ class DBConnection(DBConnectionToolKit):
         else:
             self.move_job_from_blocked_to_errored(self._jobid)
         self._jobid = None
-
-
-
-
-

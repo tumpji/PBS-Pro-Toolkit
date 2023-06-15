@@ -24,9 +24,6 @@ if args.use_function:
 try:
     while True:
         with connection as arg_dict:
-
-            # set new args ...
-
             if args.use_function:
                 imported_module.main(**arg_dict)
             else:
@@ -41,5 +38,3 @@ try:
                                  run_name='__main__')
 except NoMoreWork:
     print('CloudDB is signalling nothing to do...')
-
-
