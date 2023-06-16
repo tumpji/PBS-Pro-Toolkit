@@ -126,11 +126,6 @@ function build_singularity_container {
     singularity build --fakeroot "$1" "$2"
 }
 
-if [ 0 == 1 ]; then
-    echo 'ahoj'
-fi
-
-
 
 if [ ! -e "${SINGULARITY_SIF_PATH}" ];
 then
@@ -218,13 +213,13 @@ else
         while true; do
             echo ""
             echo "You need to select the source of the main\(kwargs\) function. The options are:"
-            echo -e "\t  1) modcma.test"
+            echo -e "\t  1) modcma.run_exp"
             echo -e "\t  2) custom package"
             echo -e "\t no) abort selection"
             read -p "What is your decision?" yn
 
             case $yn in
-                1)  SELECTION="modcma.test"
+                1)  SELECTION="modcma.run_exp"
                     break;;
                 2)  read -p "What package do you wish to run?" SELECTION
                     break;;
@@ -249,7 +244,7 @@ fi
 step "Making task script..."
 
 
-cp "${GITDIR}/clouddb/template_job_creation.py" "${TASK_SCRIPTS}/${EXPNAME}.py"
+cp "${GITDIR}/clouddb/scripts/template_job_creation.py" "${TASK_SCRIPTS}/${EXPNAME}.py"
 sed "s|#insertpath|import sys;sys.path.append('${GITDIR}')|" -i "${TASK_SCRIPTS}/${EXPNAME}.py"
 
 

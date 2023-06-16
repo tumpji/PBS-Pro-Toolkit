@@ -1,68 +1,5 @@
-Bootstrap: docker
-From: ubuntu:23.04
-
-%setup
-    echo "SetupStarted"
-    TOPLEVEL="$(git rev-parse --show-toplevel)"
-    echo "Top level ${TOPLEVEL}"
-
-    wget https://raw.githubusercontent.com/tumpji/ModularCMAES/master/requirements.txt -O ${SINGULARITY_ROOTFS}/requirements.txt
-
-    for f in $(find $TOPLEVEL -name requirements.txt)
-    do
-	echo "Copy of $f"
-	(echo;cat ${f}) >> ${SINGULARITY_ROOTFS}/requirements.txt
-    done
-
-    cat ${SINGULARITY_ROOTFS}/requirements.txt
-
-%post
-    # -------------------
-    # parallel make for building wheels ...
-    export MAKEFLAGS="-j$(nproc)"
-
-    apt-get -y update \
-	&& apt-get -y upgrade \
-	&& apt-get -y install python3.11 python3-pip git
-
-    # -------------------
-    rm /usr/lib/python3.11/EXTERNALLY-MANAGED
-
-    python3.11 -m pip install --verbose --upgrade pip
-    python3.11 -m pip install --verbose -r requirements.txt
-
-    #################################
-    # # # # conainer clean-up # # # #
-
-    # remove pip cache
-    python3.11 -m pip cache purge
-
-    # remove apt cache
-    apt-get clean
-
-    touch /etc/apt/apt.conf.d/02nocache
-    echo '
-Dir::Cache "";
-Dir::Cache::archives "";
-' | tee /etc/apt/apt.conf.d/02nocache
-    rm -rf /var/cache/apt/archives
-
-    # remove all docs
-    echo '
-# Delete locales
-path-exclude=/usr/share/locale/*
-
-# Delete man pages
-path-exclude=/usr/share/man/*
-
-# Delete docs
-path-exclude=/usr/share/doc/*
-path-include=/usr/share/doc/*/copyright
-' | tee /etc/dpkg/dpkg.cfg.d/01_nodoc
-    rm -rf /usr/share/doc/
-    rm -rf /usr/share/man/
-    rm -rf /usr/share/locale/
-
+Bootstrap: localimage
+From: modcma_main.sif
 
 %runscript
     if [[ -z "${COLLECTION}" ]]; then
@@ -73,14 +10,7 @@ path-include=/usr/share/doc/*/copyright
         exit 1
     fi
 
-    # installs modcma
-    git clone --recurse-submodules -j8 https://github.com/tumpji/ModularCMAES.git
-    cd ModularCMAES
-    python3.11 setup.py develop
-    cd ..
-
     # runs modcma
-    git clone --recurse-submodules -j8 https://github.com/tumpji/PBS-Pro-Toolkit.git
     python3.11 -m clouddb --collection "${COLLECTION}" --package "${PACKAGE}"
    
 

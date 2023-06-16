@@ -1,21 +1,6 @@
 Bootstrap: docker
 From: ubuntu:23.04
 
-%setup
-    echo "SetupStarted"
-    TOPLEVEL="$(git rev-parse --show-toplevel)"
-    echo "Top level ${TOPLEVEL}"
-
-    wget https://raw.githubusercontent.com/tumpji/ModularCMAES/master/requirements.txt -O ${SINGULARITY_ROOTFS}/requirements.txt
-
-    for f in $(find $TOPLEVEL -name requirements.txt)
-    do
-	echo "Copy of $f"
-	(echo;cat ${f}) >> ${SINGULARITY_ROOTFS}/requirements.txt
-    done
-
-    cat ${SINGULARITY_ROOTFS}/requirements.txt
-
 %post
     # -------------------
     # parallel make for building wheels ...
@@ -29,7 +14,9 @@ From: ubuntu:23.04
     rm /usr/lib/python3.11/EXTERNALLY-MANAGED
 
     python3.11 -m pip install --verbose --upgrade pip
-    python3.11 -m pip install --verbose -r requirements.txt
+    python3.11 -m pip install --verbose git+https://github.com/tumpji/PBS-Pro-Toolkit#subdirectory=clouddb
+    python3.11 -m pip install --verbose git+https://github.com/c0zzy/DGP
+    python3.11 -m pip install --verbose git+https://github.com/tumpji/ModularCMAES.git
 
     #################################
     # # # # conainer clean-up # # # #
