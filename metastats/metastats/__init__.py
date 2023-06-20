@@ -57,7 +57,7 @@ class _MetaStats(type):
             int)
 
     @property
-    def time_remainding(cls) -> Optional[int]:
+    def time_remaining(cls) -> Optional[int]:
         time = cls.time
         print(time)
         if time is None:

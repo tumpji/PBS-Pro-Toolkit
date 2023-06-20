@@ -5,12 +5,14 @@ import importlib
 import argparse
 
 from clouddb import DBConnection, NoMoreWork
+from metastats import MetaStatsWithDefaults
 
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--collection', type=str, required=True)
 parser.add_argument('--package', type=str, required=True)
-parser.add_argument('--use-function', action='store_false')
+
+parser.add_argument('--end_prematurely_sec', type=int, default=30*60)
 
 args = parser.parse_args()
 
@@ -19,22 +21,17 @@ print('CloudDB is establishing connection...')
 connection = DBConnection(args.collection)
 
 if args.use_function:
+
     imported_module = importlib.import_module(args.package)
 
 try:
     while True:
         with connection as arg_dict:
-            if args.use_function:
-                imported_module.main(**arg_dict)
-            else:
-                # set args 
-                new_args = []
-                for key, value in arg_dict.items():
-                    new_args.extend((f'--{key}', str(value)))
-                sys.argv = new_args
+            imported_module.main(**arg_dict)
 
-                # call __main__ of module/package
-                runpy.run_module(args.package,
-                                 run_name='__main__')
+            time_left = MetaStatsWithDefaults.time_remaining
+            if time_left is not None:
+                if time_left < args.end_prematurely_sec:
+                    break
 except NoMoreWork:
     print('CloudDB is signalling nothing to do...')

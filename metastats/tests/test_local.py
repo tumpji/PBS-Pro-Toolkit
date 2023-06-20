@@ -74,6 +74,6 @@ def test_sim_job_id():
 @mock.patch.dict(os.environ, {"TORQUE_RESC_TOTAL_WALLTIME": "120"})
 def test_sim_rem_time():
     assert metastats.MetaStats.time == 120
-    assert 121 >= metastats.MetaStats.time_remainding >= 119
+    assert 121 >= metastats.MetaStats.time_remaining >= 119
     time.sleep(10)
-    assert 111 >= metastats.MetaStats.time_remainding >= 109
+    assert 111 >= metastats.MetaStats.time_remaining >= 109
