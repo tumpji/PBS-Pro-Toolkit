@@ -14,12 +14,13 @@ MAX_QUEUE_SIZE = 100
 
 def generator() -> Generator[Dict[str, Union[int, float, str, bool]], None, None]:
     raise NotImplementedError('TODO')
-    # example
-    #
-    # for i in [1,2,3,4,5,6]:
-    #     for y in [1,2,3,4,5,6]:
-    #         for z in [1,2,3,4,5,6]:
-    #             yield {'i': i, 'y': y, 'z': z}
+    for fid in range(1, 24+1):
+        for dim in [2,5,10,20]:
+            for seed in [1,2,3,4,5]:
+                yield locals()
+
+                # or 
+                # yield {'i': i, 'y': y, 'z': z}
 
 
 def slave(connection: db.DBConnection, queue: Queue):
