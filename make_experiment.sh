@@ -139,7 +139,7 @@ then
             echo "You can select following options:"
             echo -e "\t  1) modcma template"
             echo -e "\t no) abort selection"
-            read -p "How did you decide? " yn
+            read -p "What is your decision? " yn
 
             case $yn in
             1)
