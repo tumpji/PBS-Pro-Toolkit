@@ -15,8 +15,10 @@ From: ubuntu:23.04
 
     python3.11 -m pip install --verbose --upgrade pip
     python3.11 -m pip install --verbose git+https://github.com/tumpji/PBS-Pro-Toolkit#subdirectory=clouddb
+    python3.11 -m pip install --verbose git+https://github.com/tumpji/PBS-Pro-Toolkit#subdirectory=metastats
     python3.11 -m pip install --verbose git+https://github.com/c0zzy/DGP
     python3.11 -m pip install --verbose git+https://github.com/tumpji/ModularCMAES.git
+
 
     #################################
     # # # # conainer clean-up # # # #
