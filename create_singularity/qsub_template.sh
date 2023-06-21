@@ -47,8 +47,11 @@ cp "${SINGULARITY_CONTAINER_PATH}" container.sif || { echo >&2 "Error while copy
 # copy the auth. file
 cp "${AUTHENTICATION_FILE}" AUTHENTICATION.ini
 
+
+mkdir "${OUTPUT_DIR}/${PBS_JOBID}"
+
 # link output
-ln -s "${OUTPUT_DIR}" output
+ln -s "${OUTPUT_DIR}/${PBS_JOBID}" output
 
 
 ############
