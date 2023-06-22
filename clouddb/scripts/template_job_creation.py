@@ -17,7 +17,7 @@ def generator() -> Generator[Dict[str, Union[int, float, str, bool]], None, None
     for fid in range(1, 24+1):
         for dim in [2,5,10,20]:
             for seed in [1,2,3,4,5]:
-                yield locals()
+                yield dict(locals())
 
                 # or 
                 # yield {'i': i, 'y': y, 'z': z}
