@@ -2,13 +2,25 @@ Bootstrap: localimage
 From: modcma_main.sif
 
 %runscript
-    if [[ -z "${COLLECTION}" ]]; then
+    echo "\n\n"
+    echo "Starting up the container..."
+
+    env
+
+    echo "Checking env:"
+
+    if [ -z "${COLLECTION}" ]; then
         echo "Error: The variable COLLECTION is not set"
         exit 1
-    elif [[ -z "${PACKAGE}" ]]; then
+    elif [ -z "${PACKAGE}" ]; then
         echo "Error: The variable PACKAGE is not set"
         exit 1
     fi
+
+    echo "Ok...\n\n"
+
+
+    echo "Starting up script..."
 
     # runs modcma
     python3.11 -m clouddb --collection "${COLLECTION}" --package "${PACKAGE}"

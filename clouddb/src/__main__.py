@@ -7,6 +7,7 @@ import argparse
 from clouddb import DBConnection, NoMoreWork
 from metastats import MetaStatsWithDefaults
 
+print('__main__ Starting ...')
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--collection', type=str, required=True)
@@ -20,9 +21,7 @@ args = parser.parse_args()
 print('CloudDB is establishing connection...')
 connection = DBConnection(args.collection)
 
-if args.use_function:
-
-    imported_module = importlib.import_module(args.package)
+imported_module = importlib.import_module(args.package)
 
 try:
     while True:
