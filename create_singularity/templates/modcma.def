@@ -20,6 +20,10 @@ From: modcma_main.sif
     echo "Ok...\n\n"
 
 
+    echo "Listing files in $(pwd)"
+    ls
+
+
     echo "Starting up script..."
 
     # runs modcma

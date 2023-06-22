@@ -8,18 +8,13 @@ JOB_START_TIME = datetime.datetime.now()
 
 class _MetaStats(type):
     def get_env_var(cls, varname: str, cast=None, op=None):
-        print(f'x is {varname}')
-        print(os.environ)
         try:
             x = os.environ[varname]
-            print(f'Found x {x}')
             if cast is not None:
                 x = cast(x)
             if op is not None:
                 x = op(x)
-            print(f'Found x {x}')
         except KeyError:
-            print('keyError')
             return None
         return x
 
@@ -59,7 +54,6 @@ class _MetaStats(type):
     @property
     def time_remaining(cls) -> Optional[int]:
         time = cls.time
-        print(time)
         if time is None:
             return None
         else:
