@@ -13,7 +13,7 @@ MAX_QUEUE_SIZE = 100
 
 
 def generator() -> Generator[Dict[str, Union[int, float, str, bool]], None, None]:
-    raise NotImplementedError('TODO')
+    #raise NotImplementedError('TODO')
     for fid in range(1, 24+1):
         for dim in [2,5,10,20]:
             for seed in [1,2,3,4,5]:
@@ -66,52 +66,83 @@ def get_chunks():
         yield chunk
 
 
+def parse_args(default_experiment_name):
+    # set up the parser
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--collection', default=experiment_name, required=False)
+
+    subparsers = parser.add_subparsers(
+        dest='action',
+        metavar='ACTION',
+        required=True
+    )
+
+    # insert
+    insert = subparsers.add_parser(
+                'insert',
+                help='insert jobs specified in the generator() function'
+    )
+    insert.add_argument('--multiprocessing', action='store_true')
+    insert.add_argument('--threads', type=int, default=None)
+
+    # drop
+    drop = subparsers.add_parser(
+                'drop',
+                help='drop jobs in DESTINATION collection'
+    )
+    drop.add_argument('destination',
+                      choices=['all', ],
+                      metavar='DESTINATION'
+                      )
+
+    # refresh
+    refresh = subparsers.add_parser(
+                'refresh',
+                help='moves all elements in collection YYY back to start')
+    refresh.add_argument('destination',
+                         choices=['block', 'error'],
+                         )
+
+    # show
+    show = subparsers.add_parser(
+                'show',
+                help='displays information about the database')
+    show.add_argument('destination',
+                      nargs=argparse.REMAINDER,
+                      choices=['stats', 'unfinished', 'error', 'block', 'finished'],
+                      )
+
+    return parser.parse_args()
+
+
 if __name__ == '__main__':
     assert(__file__.endswith('.py'))
     experiment_name = os.path.basename(__file__)[:-3]
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--collection', default=experiment_name, required=False)
-
-    # action
-    parser.add_argument('--action',
-                        choices=[
-                            'insert', 'add',
-                            'drop_all', 'clean_all',
-                            'refresh_blocked', 'refresh_blocks', 'clean_blocked', 'clean_blocks',
-                            'refresh_errored', 'refresh_errors', 'clean_errored', 'clean_errors',
-                            'show', 'list', 'display'],
-                        required=True)
-
-    # only for inserts
-    parser.add_argument('--multiprocessing', action='store_true')
-    parser.add_argument('--threads', type=int, default=None)
-    args = parser.parse_args()
+    args = parse_args(experiment_name)
 
     print('Establishing connection...')
     connection = db.DBConnection(args.collection)
 
-    if args.action in ['insert', 'add']:
-            print('Insert...')
-            if args.multiprocessing:
-                multiprocessing(connection, args)
-            else:
-                for batch_job in get_chunks():
-                    connection.insert_many_unfinished_jobs(batch_job)
-            print('Ok...')
-    elif args.action in ['drop_all', 'clean_all']:
-            print('Droping...')
-            connection.drop_everything()
-            print('Ok...')
-    elif args.action in ['refresh_blocked', 'refresh_blocks', 'clean_blocked', 'clean_blocks']:
-            print('Renewing all blocked...')
-            connection.renew_all_blocked()
-            print('Ok...')
-    elif args.action in ['refresh_errored', 'refresh_errors', 'clean_errored', 'clean_errors']:
-            print('Renewing all errorred...')
-            connection.renew_all_errored()
-            print('Ok...')
-    elif args.action in ['show', 'list', 'display']:
+    if args.action == 'insert':
+        print('Insert...')
+        if args.multiprocessing:
+            multiprocessing(connection, args)
+        else:
+            for batch_job in get_chunks():
+                connection.insert_many_unfinished_jobs(batch_job)
+    elif args.action == 'drop' and args.destination == 'all':
+        print('Removing all documents...')
+        connection.drop_everything()
+    elif args.action == 'refresh' and args.destination == 'block':
+        print('Renewing all blocked...')
+        connection.renew_all_blocked()
+    elif args.action == 'refresh' and args.destination == 'error':
+        print('Renewing all errorred...')
+        connection.renew_all_errored()
+    elif args.action == 'show':
+        if 'stats' in args.destination:
+            print('\nStats:')
             a = connection.number_of(connection.jobs_unfinished)
             b = connection.number_of(connection.jobs_blocked)
             c = connection.number_of(connection.jobs_errored)
@@ -119,7 +150,18 @@ if __name__ == '__main__':
             r = (a + b + c + d)/100
             print(f"Unfinished: {a}, Blocked: {b}, Errored: {c}, Finished: {d}")
             if r > 0:
-                print(f"Unfinished: {a/r:.2f}, Blocked: {b/r:.2f}, Errored: {c/r:.2f}, Finished: {d/r:.2f}")
+                print(f"Unfinished: {a/r:.2f}%, Blocked: {b/r:.2f}%, Errored: {c/r:.2f}%, Finished: {d/r:.2f}%")
+        if 'unfinished' in args.destination:
+            print('\nUnfinished:')
+            print(connection.get_unfinished_jobs())
+        if 'block' in args.destination:
+            print('\nBlocked:')
+            print(connection.get_blocked_jobs())
+        if 'error' in args.destination:
+            print('\nErrored:')
+            print(connection.get_errored_jobs())
+        if 'finished' in args.destination:
+            print('\nFinished:')
+            print(connection.get_finished_jobs())
     else:
-        raise NotImplementedError(f"The option '{args.action}' is not implemented")
-
+        raise NotImplementedError(f"The option '{args}' is not implemented")

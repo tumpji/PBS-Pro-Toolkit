@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "clouddb"
-version = "0.4.1"
+version = "0.5.1"
 description = ""
 authors = ["Jiří Tumpach "]
 readme = "README.md"
@@ -13,12 +13,40 @@ python = "^3.10"
 pymongo = "^4.3.3"
 
 [tool.poetry.group.dev.dependencies]
-mock = "^5.0.2"
+mock = "*"
 sphinx = "^7.0.1"
+pandas = "*"
+mypy = "^1.4.0"
+pytest = "^7.4.0"
+pytest-xdist = "^3.3.1"
+pytest-cov = "^4.1.0"
+
+[tool.poetry.group.setup.dependencies]
+pandas = "*"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-tests = 'tests:test'
+
+[tool.mypy]
+pretty = true
+show_column_numbers = true
+show_error_codes = true
+show_error_context = true
+ignore_missing_imports = true
+strict = true
+warn_unreachable = true
+
+
+
+# --------------------
+# tldr help:
+#
+# poetry run python scripts/template_job_creation.py
+# 
+# poetry run pytest
+# poetry run pytest --cov
+# 
+

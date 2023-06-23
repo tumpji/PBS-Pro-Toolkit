@@ -46,6 +46,8 @@ import datetime
 from typing import List, Dict, Any
 from urllib.parse import quote_plus as quote
 
+import pandas as pd
+
 from pymongo import MongoClient
 from pymongo.database import Database
 from pymongo.collection import Collection
@@ -117,6 +119,26 @@ class DBConnectionToolKit(DBConnectionBase):
     def insert_many_unfinished_jobs(self, jobs: List[JobType]):
         self.jobs_unfinished.insert_many(jobs)
 
+    def get_collectin(self, collection):
+        out = list(collection.find({}))
+        if len(out):
+            return pd.DataFrame(out).drop(columns=['_id',])
+        else:
+            return None
+
+    def get_unfinished_jobs(self):
+        return self.get_collectin(self.jobs_unfinished)
+
+    def get_finished_jobs(self):
+        return self.get_collectin(self.jobs_finished)
+
+    def get_blocked_jobs(self):
+        return self.get_collectin(self.jobs_blocked)
+
+    def get_errored_jobs(self):
+        return self.get_collectin(self.jobs_errored)
+
+
     # removals
     def drop(self, collection: Collection) -> None:
         collection.drop()
@@ -132,18 +154,20 @@ class DBConnectionToolKit(DBConnectionBase):
             with session.start_transaction():
                 # remove column '_start_time'
                 self.jobs_errored.update_many({}, {'$unset': {'_start_time': ''}})
-                result = self.jobs_errored.find({})
-                self.jobs_unfinished.insert_many(result)
-                self.jobs_errored.delete_many({})
+                result = list(self.jobs_errored.find({}))
+                if len(result):
+                    self.jobs_unfinished.insert_many(result)
+                    self.jobs_errored.delete_many({})
 
     def renew_all_blocked(self) -> None:
         with self.client.start_session() as session:
             with session.start_transaction():
                 # remove column '_start_time'
                 self.jobs_blocked.update_many({}, {'$unset': {'_start_time': ''}})
-                result = self.jobs_blocked.find({})
-                self.jobs_unfinished.insert_many(result)
-                self.jobs_blocked.delete_many({})
+                result = list(self.jobs_blocked.find({}))
+                if len(result):
+                    self.jobs_unfinished.insert_many(result)
+                    self.jobs_blocked.delete_many({})
 
     def renew_blocked_timedelta(self, timedelta: datetime.timedelta) -> None:
         time = datetime.datetime.utcnow() - timedelta
