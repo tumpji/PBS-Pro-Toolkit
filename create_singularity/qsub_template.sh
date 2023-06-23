@@ -1,8 +1,8 @@
 #!/bin/sh
 #PBS -N <AUTO_FILL_IN_COLLECTION>
-#PBS -l select=1:ncpus=1:mem=8gb:scratch_local=10g
+#PBS -l select=1:ncpus=1:mem=10gb:scratch_local=10g
 #PBS -l place=scatter
-#PBS -l walltime=2:00:00
+#PBS -l walltime=48:00:00
 #PBS -j oe
 #PBS -m ae
 #PBS -o <AUTO_FILL_IN_LOGS_PATH>
