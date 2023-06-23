@@ -74,12 +74,12 @@ class TestArguments(unittest.TestCase):
     def test_function_main(self):
         sys.argv = ['clouddb.__main__',
                     '--collection', 'test',
-                    '--package', 'test_module_interface']
+                    '--package', "tests.test_module_interface"]
 
         with open(os.devnull, 'w') as devnull:
             with patch('sys.stdout', devnull):
                 with patch('sys.stderr', devnull):
-                    runpy.run_path('src/__main__.py', run_name='__main__')
+                    runpy.run_path('clouddb/__main__.py', run_name='__main__')
 
         dlist = []
         with open(self.tmpfile.name, 'r') as f:
